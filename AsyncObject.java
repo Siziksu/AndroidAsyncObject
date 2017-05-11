@@ -7,10 +7,10 @@ public final class AsyncObject<O> {
     private Runnable runnable;
     private Handler handler;
     private boolean executing;
-    private RetGen<O> action;
-    private FunGen<O> success;
-    private FunGen<Throwable> fail;
-    private FunVoid done;
+    private Function<O> action;
+    private Provider<O> success;
+    private Provider<Throwable> fail;
+    private Consumer done;
     private boolean subscribeOnMainThread;
 
     public AsyncObject() {}
@@ -24,23 +24,23 @@ public final class AsyncObject<O> {
         return executing;
     }
 
-    public AsyncObject<O> action(final RetGen<O> action) {
+    public AsyncObject<O> action(final Function<O> action) {
         this.action = action;
         return this;
     }
 
-    public void subscribe(final FunGen<O> success) {
+    public void subscribe(final Provider<O> success) {
         this.success = success;
         run();
     }
 
-    public void subscribe(final FunGen<O> success, final FunGen<Throwable> fail) {
+    public void subscribe(final Provider<O> success, final Provider<Throwable> fail) {
         this.success = success;
         this.fail = fail;
         run();
     }
 
-    public AsyncObject<O> done(final FunVoid done) {
+    public AsyncObject<O> done(final Consumer done) {
         this.done = done;
         return this;
     }
@@ -67,7 +67,7 @@ public final class AsyncObject<O> {
             runnable = () -> {
                 executing = true;
                 try {
-                    O response = action.apply();
+                    O response = action.execute();
                     if (response != null && success != null) {
                         success(response);
                     }
@@ -89,25 +89,25 @@ public final class AsyncObject<O> {
 
     private void success(final O response) {
         if (handler != null) {
-            handler.post(() -> success.apply(response));
+            handler.post(() -> success.provide(response));
         } else {
-            success.apply(response);
+            success.provide(response);
         }
     }
 
     private void fail(final Exception e) {
         if (handler != null) {
-            handler.post(() -> fail.apply(e));
+            handler.post(() -> fail.provide(e));
         } else {
-            fail.apply(e);
+            fail.provide(e);
         }
     }
 
     private void done() {
         if (handler != null) {
-            handler.post(() -> done.apply());
+            handler.post(() -> done.consume());
         } else {
-            done.apply();
+            done.consume();
         }
     }
 }

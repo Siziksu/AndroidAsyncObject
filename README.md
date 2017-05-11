@@ -14,25 +14,25 @@ The `subscribe()` method executes internally the `run()` method. If you don't us
 
 This object can run actions in background using threads. It uses 3 Functional Interfaces:
 
-- FunGen
+- Provider
 ```java
-public interface FunGen<O> {
+public interface Provider<O> {
 
-    void apply(O object);
+    void provide(O object);
 }
 ```
-- FunVoid
+- Consumer
 ```java
-public interface FunVoid {
+public interface Consumer {
 
-    void apply();
+    void consume();
 }
 ```
-- RetGen
+- Function
 ```java
-public interface RetGen<O> {
+public interface Function<O> {
 
-    O apply() throws Exception;
+    O execute() throws Exception;
 }
 ```
 
